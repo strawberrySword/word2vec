@@ -23,21 +23,24 @@ def gradcheck_naive(f, x, gradient_text=""):
     while not it.finished:
         ix = it.multi_index
 
-        # Try modifying x[ix] with h defined above to compute numerical
-        # gradients (numgrad).
+        # Save the original value of i-th demention
+        original_xi_value = x[ix]
 
-        # Use the centered difference of the gradient.
-        # It has smaller asymptotic error than forward / backward difference
-        # methods. If you are curious, check out here:
-        # https://math.stackexchange.com/questions/2326181/when-to-use-forward-or-central-difference-approximations
+        # Modify the i-th dimention to get f(x + h)
+        x[ix] = original_xi_value + h
+        random.setstate(rndstate)  # Ensure consistent results
+        fx_plus_h, _ = f(x)
 
-        # Make sure you call random.setstate(rndstate)
-        # before calling f(x) each time. This will make it possible
-        # to test cost functions with built in randomness later.
+        # Modify the i-th dimention to get f(x - h)
+        x[ix] = original_xi_value - h
+        random.setstate(rndstate)  # Ensure consistent results
+        fx_minus_h, _ = f(x)
 
-        ### YOUR CODE HERE:
-        raise NotImplementedError
-        ### END YOUR CODE
+        # Restore the original value
+        x[ix] = original_xi_value
+
+        # Compute the numerical gradient
+        numgrad = (fx_plus_h - fx_minus_h) / (2 * h)
 
         # Compare gradients
         assert_allclose(numgrad, grad[ix], rtol=1e-5,

@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def softmax(x):
     """Compute the softmax function for each row of the input x.
     It is crucial that this function is optimized for speed because
@@ -14,15 +13,12 @@ def softmax(x):
     orig_shape = x.shape
 
     if len(x.shape) > 1:
-        # Matrix
-        ### YOUR CODE HERE
-        raise NotImplementedError
-        ### END YOUR CODE
+        x = np.apply_along_axis(softmax, 1, x)
+
     else:
-        # Vector
-        ### YOUR CODE HERE
-        raise NotImplementedError
-        ### END YOUR CODE
+        x -= np.max(x)
+        denom = np.sum(np.exp(x))
+        x = (np.exp(x))/denom
 
     assert x.shape == orig_shape
     return x

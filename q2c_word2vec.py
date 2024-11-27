@@ -45,9 +45,6 @@ def naive_softmax_loss_and_gradient(
     y_hat[outside_word_idx] -= 1
     grad_center_vec = outside_vectors.T @ y_hat
     grad_outside_vecs = np.outer(y_hat,center_word_vec)
-    print(f'{loss.shape=}')
-    print(f'{grad_center_vec.shape=}')
-    print(f'{grad_outside_vecs.shape=}')
     ### END YOUR CODE
     return loss, grad_center_vec, grad_outside_vecs
 
@@ -88,10 +85,6 @@ def neg_sampling_loss_and_gradient(
     grad_outside_vecs[outside_word_idx] = - (1 - sigmoid(vecs[0].T @ center_word_vec)) * center_word_vec
     for idx in neg_sample_word_indices:
         grad_outside_vecs[idx] += (1 - sigmoid(- outside_vectors[idx].T @ center_word_vec)) * center_word_vec
-    print(f'{loss.shape=}')
-    print(f'{grad_center_vec.shape=}')
-    print(f'{grad_outside_vecs.shape=}')
-    print(f'{K=}')
     return loss, grad_center_vec, grad_outside_vecs
 
 
@@ -127,11 +120,7 @@ def skipgram(current_center_word, outside_words, word2ind,
     """
     loss = 0.0
     grad_center_vecs = np.zeros(center_word_vectors.shape)
-    grad_outside_vectors = np.zeros(outside_vectors.shape)
-    print("SKIPGRAMSS")
-    print(f'{grad_center_vecs.shape}')
-    print(f'{grad_outside_vectors.shape}')
-    
+    grad_outside_vectors = np.zeros(outside_vectors.shape)    
     ### YOUR CODE HERE
 
     output = \
@@ -141,8 +130,6 @@ def skipgram(current_center_word, outside_words, word2ind,
     loss = np.array(output[0]).sum()
     grad_center_vecs[word2ind[current_center_word]] = np.array(output[1]).sum(axis=0)
     grad_outside_vectors = np.array(output[2]).sum(axis=0)
-    print(f'{grad_center_vecs.shape}')
-    print(f'{grad_outside_vectors.shape}')
     return loss, grad_center_vecs, grad_outside_vectors
 
 

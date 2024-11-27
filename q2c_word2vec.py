@@ -4,9 +4,11 @@ import random
 import numpy as np
 
 from helpers.utils import normalize_rows, sigmoid, get_negative_samples
-from q3a_softmax import softmax
-from q3b_gradcheck import gradcheck_naive
+from q2a_softmax import softmax
+from q2b_gradcheck import gradcheck_naive
 
+def sigmoid(x):
+    return 1/(1 + np.exp(-x)) 
 
 def naive_softmax_loss_and_gradient(
         center_word_vec,
@@ -38,9 +40,15 @@ def naive_softmax_loss_and_gradient(
     """
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    y_hat = softmax(outside_vectors @ center_word_vec)
+    loss = -np.log(y_hat[outside_word_idx])
+    y_hat[outside_word_idx] -= 1
+    grad_center_vec = outside_vectors.T @ y_hat
+    grad_outside_vecs = np.outer(y_hat,center_word_vec)
+    print(f'{loss.shape=}')
+    print(f'{grad_center_vec.shape=}')
+    print(f'{grad_outside_vecs.shape=}')
     ### END YOUR CODE
-
     return loss, grad_center_vec, grad_outside_vecs
 
 
@@ -69,11 +77,21 @@ def neg_sampling_loss_and_gradient(
     # wish to match the autograder and receive points!
     neg_sample_word_indices = get_negative_samples(outside_word_idx, dataset, K)
     indices = [outside_word_idx] + neg_sample_word_indices
-
-    ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
-
+    vecs = outside_vectors[indices]
+    vecs[0] = -vecs[0]
+    
+    sigmoid_mult = sigmoid( - (vecs @ center_word_vec.T))
+    loss = -np.log(sigmoid_mult).sum()
+    grad_center_vec = (vecs.T * (1 - sigmoid_mult)).T.sum(axis = 0)
+    vecs[0] = -vecs[0]
+    grad_outside_vecs = np.zeros_like(outside_vectors)
+    grad_outside_vecs[outside_word_idx] = - (1 - sigmoid(vecs[0].T @ center_word_vec)) * center_word_vec
+    for idx in neg_sample_word_indices:
+        grad_outside_vecs[idx] += (1 - sigmoid(- outside_vectors[idx].T @ center_word_vec)) * center_word_vec
+    print(f'{loss.shape=}')
+    print(f'{grad_center_vec.shape=}')
+    print(f'{grad_outside_vecs.shape=}')
+    print(f'{K=}')
     return loss, grad_center_vec, grad_outside_vecs
 
 
@@ -110,11 +128,21 @@ def skipgram(current_center_word, outside_words, word2ind,
     loss = 0.0
     grad_center_vecs = np.zeros(center_word_vectors.shape)
     grad_outside_vectors = np.zeros(outside_vectors.shape)
-
+    print("SKIPGRAMSS")
+    print(f'{grad_center_vecs.shape}')
+    print(f'{grad_outside_vectors.shape}')
+    
     ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
 
+    output = \
+        list(map(list, zip(*[word2vec_loss_and_gradient(center_word_vectors[word2ind[current_center_word]], word2ind[outside_word], outside_vectors, dataset) for outside_word in outside_words])))
+
+
+    loss = np.array(output[0]).sum()
+    grad_center_vecs[word2ind[current_center_word]] = np.array(output[1]).sum(axis=0)
+    grad_outside_vectors = np.array(output[2]).sum(axis=0)
+    print(f'{grad_center_vecs.shape}')
+    print(f'{grad_outside_vectors.shape}')
     return loss, grad_center_vecs, grad_outside_vectors
 
 
@@ -165,16 +193,16 @@ def test_word2vec_basic():
     dummy_vectors = normalize_rows(np.random.randn(10, 3))
     dummy_tokens = dict([("a", 0), ("b", 1), ("c", 2), ("d", 3), ("e", 4)])
 
+
     print("==== Gradient check for skip-gram with naive_softmax_loss_and_gradient ====")
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         skipgram, dummy_tokens, vec, dataset, 5, naive_softmax_loss_and_gradient),
         dummy_vectors, "naive_softmax_loss_and_gradient Gradient")
-
+    
     print("==== Gradient check for skip-gram with neg_sampling_loss_and_gradient ====")
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         skipgram, dummy_tokens, vec, dataset, 5, neg_sampling_loss_and_gradient),
                     dummy_vectors, "neg_sampling_loss_and_gradient Gradient")
-
     print("\n=== Results ===")
     print("Skip-Gram with naive_softmax_loss_and_gradient")
 

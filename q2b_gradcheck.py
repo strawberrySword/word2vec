@@ -12,7 +12,7 @@ def gradcheck_naive(f, x, gradient_text=""):
     x -- the point (numpy array) to check the gradient at
     gradient_text -- a string detailing some context about the gradient computation
     """
-
+    print(f'{x.shape=}')
     rndstate = random.getstate()
     random.setstate(rndstate)
     fx, grad = f(x)  # Evaluate function value at original point
@@ -20,6 +20,8 @@ def gradcheck_naive(f, x, gradient_text=""):
 
     # Iterate over all indexes ix in x to check the gradient.
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
+    print(f'{x.shape=}')
+    print(f'Iterating!!!!!!')
     while not it.finished:
         ix = it.multi_index
 

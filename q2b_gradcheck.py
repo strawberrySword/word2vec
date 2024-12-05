@@ -17,6 +17,10 @@ def gradcheck_naive(f, x, gradient_text=""):
     fx, grad = f(x)  # Evaluate function value at original point
     h = 1e-4         # Do not change this!
 
+    # Valid value check
+    if np.any(np.isinf(x)) or np.any(np.isnan(x)):
+        raise ValueError(f"Invalid input detected: {x}. Gradient check is not valid for infinities or NaNs.")
+
     # Iterate over all indexes ix in x to check the gradient.
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
     while not it.finished:
@@ -73,9 +77,25 @@ def your_gradcheck_test():
     your additional tests be graded.
     """
     print("Running your sanity checks...")
-    ### YOUR OPTIONAL CODE HERE
-    pass
-    ### END YOUR CODE
+    
+    # Simple linear function: gradcheck should pass
+    linear = lambda x: (np.sum(x), np.ones_like(x))
+    gradcheck_naive(linear, np.zeros(5), gradient_text="Simple linear function (zero vector)")  # Zero vector
+    gradcheck_naive(linear, np.ones(5), gradient_text="Simple linear function (ones vector)")  # Ones vector
+
+    # Test with large values
+    large_values = lambda x: (np.sum(x ** 2), 2 * x)
+    gradcheck_naive(large_values, np.full((5,), 1e5), gradient_text=" Large values (1e5)")
+
+    # Test with very small values
+    small_values = lambda x: (np.sum(x**2), 2*x)
+    gradcheck_naive(small_values, np.full((5,), 1e-10), gradient_text="Small values (1e-10)")
+
+    # Test with high-dimensional array
+    high_dim = lambda x: (np.sum(x ** 2), 2 * x)
+    gradcheck_naive(high_dim, np.random.randn(10, 10, 10), gradient_text="High-dimensional array")
+
+    print("Edge case tests passed!")
 
 
 if __name__ == "__main__":
